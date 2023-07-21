@@ -190,7 +190,7 @@ begin
   FSpline := TSpline.Create;
   FSpline.Degree := 3;
 
-  FSpline.AddKnots([0, 0, 0, 0, 0.25, 0.5, 0.66, 1, 1, 1, 1]);
+  FSpline.AddKnots([0, 0, 0, 0, 0.25, 0.5, 0.75, 1, 1, 1, 1]);
   FSpline.AddPoints([
     D2D1PointF(-10, 10),
     D2D1PointF(20, 40),
@@ -260,10 +260,10 @@ begin
   		FRender.FillEllipse(D2D1Ellipse(P, S, S), FBrush);
     end;
 
-  FSpline.CalculateSplinePoint(0, 0.1, LP, LL);
-//  FSpline.CalculateSplinePoint(1, 0.3, LP, LL);
-//  FSpline.CalculateSplinePoint(2, 0.5, LP, LL);
-//  FSpline.CalculateSplinePoint(3, 0.7, LP, LL);
+  FSpline.CalculateSplinePoint(0, 0.12, LP, LL);
+  FSpline.CalculateSplinePoint(1, 0.33, LP, LL);
+  FSpline.CalculateSplinePoint(2, 0.66, LP, LL);
+  FSpline.CalculateSplinePoint(3, 0.83, LP, LL);
 //  FSpline.CalculateSplinePoint(4, 0.9, LP, LL);
 
 //  FSpline.CalculateSplinePoint(1, 0.17, LP, LL);
