@@ -7,7 +7,7 @@ uses
   Generics.Collections,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, D2D1, Direct2D, Winapi.DxgiFormat, pngimage,
 
-  Core, Geometry, Component, Polygon, Spline;
+  Core, Geometry, Component, Polygon, Spline, Vcl.StdCtrls;
 
 type
   TForm1 = class(TForm)
@@ -200,7 +200,8 @@ begin
     D2D1PointF(0, -5),
     D2D1PointF(10, -10),
     D2D1PointF(-10, -15),
-    D2D1PointF(-50, -15)
+    D2D1PointF(-50, -15),
+    D2D1PointF(-40, 15)
     ]);
 
 //  FSpline.AddKnots([
@@ -247,12 +248,19 @@ var P: TD2DPoint2f;
     L: TLineRec;
     S: Single;
 
+    A: Integer;
+
   	Colors: Array[0..3] of D3DCOLORVALUE;
 begin
   LP := TObjectList<TPointRec>.Create;
   LL := TObjectList<TLineRec>.Create;
 
   FBrush.SetColor(D2D1ColorF(0, 0, 0, 1));
+//
+//  for i := 0 to FSpline.ControlPoints.Count - 2 do
+//  	begin
+//      FRender.DrawLine(FSpline.ControlPoints[i], FSpline.ControlPoints[i + 1], FBrush, 0.2);
+//    end;
 
   S := 1;
   for P in FSpline.ControlPoints do
@@ -260,17 +268,24 @@ begin
   		FRender.FillEllipse(D2D1Ellipse(P, S, S), FBrush);
     end;
 
-  FSpline.CalculateSplinePoint(0, 0.12, LP, LL);
-  FSpline.CalculateSplinePoint(1, 0.33, LP, LL);
-  FSpline.CalculateSplinePoint(2, 0.66, LP, LL);
-  FSpline.CalculateSplinePoint(3, 0.83, LP, LL);
-//  FSpline.CalculateSplinePoint(4, 0.9, LP, LL);
+//  FSpline.CalculateSplinePoint(0, 0.33, LP, LL);
+//  FSpline.CalculateSplinePoint(1, 0.5, LP, LL);
+//  FSpline.CalculateSplinePoint(2, 0.83, LP, LL);
 
-//  FSpline.CalculateSplinePoint(1, 0.17, LP, LL);
-//  FSpline.CalculateSplinePoint(2, 0.25, LP, LL);
-//  FSpline.CalculateSplinePoint(3, 0.33, LP, LL);
-//  FSpline.CalculateSplinePoint(4, 0.5, LP, LL);
+	A := FSpline.SegmentFromT(FVal);
+	Caption := IntToStr(A) + ' - ' + FloatToStr(FVal);
 
+//  if A > 2 then
+//  	A := 2;
+    
+  FSpline.CalculateSplinePoint(A, FVal, LP, LL);
+  
+  for L in LL do
+    begin
+      FBrush.SetColor(D2D1ColorF(L.Color));
+      FRender.DrawLine(L.BegPos, L.EndPos, FBrush, L.LineWidth);
+    end;
+    
   for Q in LP do
   	begin
       FBrush.SetColor(D2D1ColorF(Q.Color));
@@ -278,18 +293,11 @@ begin
       FRender.FillEllipse(D2D1Ellipse(Q.Pos, S, S), FBrush);
     end;
 
-//    for L in LL do
-//    	begin
-//        FBrush.SetColor(D2D1ColorF(L.Color));
-//      	FRender.DrawLine(L.BegPos, L.EndPos, FBrush, L.LineWidth);
-//      end;
-
   FBrush.SetColor(D2D1ColorF(1, 0, 1, 1));
   for i := 0 to FSpline.Points.Count - 2 do
   	begin
     	FRender.DrawLine(FSpline.Points[i], FSpline.Points[i + 1], FBrush, 0.2);
     end;
-
 
   FreeAndNil(LP);
   FreeAndNil(LL);
@@ -334,21 +342,13 @@ begin
 
       K := X - FOldPos.X;
 
-      if K < 0 then
-        Caption := '- : ' + IntToStr(K)
+      FVal := K / 600 + 0.5;
 
-      else
-        Caption := '+ : ' + IntToStr(K);
+      if FVal <= 0 then
+        FVal := 0
 
-      FVal := K / 750;
-
-      if FVal <= -0.5 then
-        FVal := -0.5
-
-      else if FVal >= 0.5 then
-        FVal := 0.5;
-
-      Caption := FloatToStr(FVal);
+      else if FVal >= 1 then
+        FVal := 1;
 
       InvalidateRect(Handle, nil, False);
     end;
@@ -368,7 +368,7 @@ var G: TGeometry;
     L: Single;
 begin
 
-  S := 7;
+  S := 8;
   L := 30 / S;
 
   FRender.BeginDraw;

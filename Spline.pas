@@ -3,7 +3,7 @@
 interface
 
 uses
-	SysUtils, Generics.Collections, D2D1, Graphics, Direct2D, Dialogs;
+	SysUtils, Generics.Collections, Math, D2D1, Graphics, Direct2D, Dialogs;
 
 type
   TPointRec = class
@@ -43,6 +43,8 @@ type
 
       function CalculateSplinePoint(ASegment: Integer; AT: Single; APoints: TList<TPointRec>; ALines: TList<TLineRec>): TD2DPoint2f;
 
+      function SegmentFromT(AT: Single): Integer;
+
       property Points: TControlPoints read FPoints;
       property ControlPoints: TControlPoints read FControlPoints write FControlPoints;
 
@@ -69,6 +71,33 @@ begin
   Result.LineWidth := ALineWidth;
   Result.BegPos := ABegPos;
   Result.EndPos := AEndPos;
+end;
+
+function ComparePoints(AP1, AP2: TD2DPoint2f): Boolean;
+begin
+  Result := (Abs(AP1.x - AP2.x) <= 0.001) and (Abs(AP1.y - AP2.y) <= 0.001);
+end;
+
+function CompareLinePoints(ALine: TLineRec; ABegPos, AEndPos: TD2DPoint2f): Boolean;
+begin
+  Result :=
+  	(ComparePoints(ALine.BegPos, ABegPos) and ComparePoints(ALine.EndPos, AEndPos)) or
+		(ComparePoints(ALine.BegPos, AEndPos) and ComparePoints(ALine.EndPos, ABegPos));
+end;
+
+function LineExists(AList: TList<TLineRec>; AP1, AP2: TD2DPoint2f): Boolean;
+var L: TLineRec;
+begin
+  Result := False;
+	for L in AList do
+  	begin
+      if CompareLinePoints(L, AP1, AP2) then
+      	begin
+          Result := True;
+//          ShowMessage('dfd');
+          Break;
+        end;
+    end;
 end;
 
 constructor TSpline.Create;
@@ -130,6 +159,16 @@ begin
   Result.y := AP1.y + (AP2.y - AP1.y) * AT;
 end;
 
+function TSpline.SegmentFromT(AT: Single): Integer;
+var K: Integer;
+begin
+  K := FKnots.Count - (FDegree + 1) * 2 + 1;
+  Result := Floor(AT * K);
+
+  if Result >= K - 1 then
+    Result := K - 1;
+end;
+
 function TSpline.CalculateSplinePoint(ASegment: Integer; AT: Single; APoints: TList<TPointRec>; ALines: TList<TLineRec>): TD2DPoint2f;
 var T: Single;
     i, j: Integer;
@@ -139,7 +178,7 @@ var T: Single;
 
     D: Single;
 const
-  Cols: Array[0..9] of TColor = (clGreen, clBlue, clRed, clFuchsia, clOlive, clPurple, clYellow, clAqua, clTeal, clNavy);
+  Cols: Array[0..9] of TColor = (clGreen, clBlue, clRed, clWebOrange, clOlive, clPurple, clYellow, clAqua, clTeal, clNavy);
 begin
 
   ASegment := ASegment + FDegree;
@@ -172,13 +211,13 @@ begin
       PArr[i] := FControlPoints[i + ASegment - FDegree];
     end;
 
-  for i := 0 to FDegree - 1 do
-    begin
-      if ALines <> nil then
-      	ALines.Add(ToLineRec(PArr[i], PArr[i + 1], 0, 0.3));
-    end;
+//  for i := 0 to FDegree - 1 do
+//    begin
+//      if ALines <> nil then
+//      	ALines.Add(ToLineRec(PArr[i], PArr[i + 1], 0, 0.3));
+//    end;
 
-  D := 1.5;
+  D := 0.5;
 
   if FDegree = 1 then
     begin
@@ -205,12 +244,17 @@ begin
               // новый параметр T
               T := (AT - FKnots[S - FDegree]) / (FKnots[S - i] - FKnots[S - FDegree]);
 
+              if (ALines <> nil) and not LineExists(ALines, PArr[j - 1], PArr[j]) then
+                ALines.Add(ToLineRec(PArr[j - 1], PArr[j], Cols[i + ASegment - FDegree], 0.2));
+
               PArr[j] := PointAtSegment(PArr[j - 1], PArr[j], T);
 
               if APoints <> nil then
               	APoints.Add(ToPointRec(PArr[j], Cols[i + ASegment - FDegree], D, 'A'));
             end;
-          D := D - 0.25;
+
+          D := D + 0.25;
+
         end;
     end;
 
