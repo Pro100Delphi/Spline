@@ -102,12 +102,12 @@ begin
 
 	FControlPoints.AddRange(APoints);
 
-  for k := 0 to FControlPoints.Count - 1 do
-  	begin
-    	P := FControlPoints[k];
-      P := D2D1PointF(P.x * 12, P.y * 12);
-      FControlPoints[k] := P;
-    end;
+//  for k := 0 to FControlPoints.Count - 1 do
+//  	begin
+//    	P := FControlPoints[k];
+//      P := D2D1PointF(P.x * 12, P.y * 12);
+//      FControlPoints[k] := P;
+//    end;
 
   S := 0;
   for k := FDegree to FKnots.Count - FDegree - 2 do
