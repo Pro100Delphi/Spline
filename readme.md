@@ -1,7 +1,4 @@
 # Results
-![Screenshot](test1.JPG)
-![Screenshot](test2.JPG)
-
 |   |   |   |
 |---|---|---|
 |![Screenshot](test1.JPG)   |![Screenshot](test2.JPG)   |  
